@@ -1,4 +1,4 @@
-package user
+package ledger
 
 // PaymentChronology is the type of Chronology for Bills, see the constants below:
 type PaymentChronology string
