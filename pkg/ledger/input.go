@@ -1,7 +1,6 @@
 package ledger
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -16,17 +15,7 @@ type Ledger struct {
 	Access  time.Time
 	Clients []Borrower `yaml:"borrowers"`
 	Bills   []Bill     `yaml:"bills"`
-}
-
-// InitializeCurrentMonth will init the YAML file for the current month, based on the main config YAML
-func InitializeCurrentMonth(user Ledger) {
-	fmt.Printf("Current user %s \n", user.Admin)
-	for _, bills := range user.Bills {
-		fmt.Printf("Bill: %v \n", bills)
-	}
-	for _, clients := range user.Clients {
-		fmt.Printf("Borrowesr: %v \n", clients.Person)
-	}
+	Places  []string   `yaml:"frequent_places"`
 }
 
 // GetInitialConf will process the main config YAML
