@@ -1,13 +1,22 @@
 
 
 
-                                                        __             __
-                                                       / /   ___  ____/ /___ ____  _____
-                                                      / /   / _ \/ __  / __ `/ _ \/ ___/
-                                                     / /___/  __/ /_/ / /_/ /  __/ /
-                                                    /_____/\___/\__,_/\__, /\___/_/
-                                                                     /____/
+                                              __             __
+                                             / /   ___  ____/ /___ ____  _____
+                                            / /   / _ \/ __  / __ `/ _ \/ ___/
+                                           / /___/  __/ /_/ / /_/ /  __/ /
+                                          /_____/\___/\__,_/\__, /\___/_/
+                                                           /____/
 
 
 
 A collection of financial activities
+
+TODO:
+- Define full README
+- Add license
+- Add test cases(TDD)
+- Integrate with goreport
+- Consider the usage of travis
+
+- Provide a Makefile
