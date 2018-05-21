@@ -3,23 +3,21 @@ package ledger
 import (
 	"io/ioutil"
 	"log"
-	"time"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 // Ledger struct that defines how the main config file should look
 type Ledger struct {
-	Admin   string `yaml:"user"`
-	Salary  int    `yaml:"salary"`
-	Access  time.Time
+	Admin   string     `yaml:"user"`
+	Salary  int        `yaml:"salary"`
 	Clients []Borrower `yaml:"borrowers"`
 	Bills   []Bill     `yaml:"bills"`
 	Places  []string   `yaml:"frequent_places"`
 }
 
 // GetInitialConf will process the main config YAML
-func GetInitialConf(path string) Ledger {
+func GetInitialConf(path string) {
 	var admin Ledger
 	yamlFile, err := ioutil.ReadFile(path)
 	check(err)
@@ -27,7 +25,7 @@ func GetInitialConf(path string) Ledger {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	return admin
+	InitializeCurrentMonth(admin)
 }
 
 func check(e error) {

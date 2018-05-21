@@ -23,7 +23,7 @@ func Execute() {
 	app.Action = func(c *cli.Context) error {
 		if c.String("config") != "" {
 			path := c.String("config")
-			ledger.InitializeCurrentMonth(ledger.GetInitialConf(path))
+			ledger.GetInitialConf(path)
 		}
 		return nil
 	}
