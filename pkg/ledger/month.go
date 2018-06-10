@@ -15,9 +15,9 @@ const ledgerConfigDirName string = "/.ledger"
 
 // Spend struct that defines a single spend action
 type Spend struct {
-	Amount      int    `yaml:"amount"`
-	Date        string `yaml:"date"`
-	Description string `yaml:"description"`
+	Amount      float32 `yaml:"amount"`
+	Date        string  `yaml:"date"`
+	Description string  `yaml:"description"`
 }
 
 // Month struct that defines a month config YAML file
@@ -38,7 +38,7 @@ func MarshallMonth(month Month, path string) {
 }
 
 //UpdateExistingMonth will update month config file
-func UpdateExistingMonth(month Month, user Ledger, path string) {
+func UpdateExistingMonth(month Month, user Ledger, path string) Month {
 	yamlMonthFile, err := ioutil.ReadFile(path)
 	check(err)
 	err = yaml.Unmarshal(yamlMonthFile, &month)
@@ -47,6 +47,7 @@ func UpdateExistingMonth(month Month, user Ledger, path string) {
 	}
 	for _, frequentPlaces := range user.Places {
 		if month.Expenses[frequentPlaces] == nil {
+			fmt.Printf("New frequent place detected: %v, updating. \n", frequentPlaces)
 			var missingExpense Spend
 			month.Expenses[frequentPlaces] = append(month.Expenses[frequentPlaces], missingExpense)
 		}
@@ -55,6 +56,22 @@ func UpdateExistingMonth(month Month, user Ledger, path string) {
 	check(err)
 	errs := ioutil.WriteFile(path, b, 0644)
 	check(errs)
+	return month
+}
+
+// CreateMonth create Month file with configuration file properties
+func CreateMonth(user Ledger, month Month) Month {
+	var mymap = make(map[string][]Spend)
+	var spend = make([]Spend, 1)
+	spend[0].Description = "Please provide a description (optional)"
+	month.Expenses = mymap
+	month.Bills = user.Bills
+	month.User = user.Admin
+	for _, bills := range user.Places {
+		mymap[bills] = spend
+	}
+	month.Expenses = mymap
+	return month
 }
 
 // InitializeCurrentMonth will init the YAML file for the current month, based on the main config YAML
@@ -67,20 +84,10 @@ func InitializeCurrentMonth(user Ledger) {
 
 	if _, err := os.Stat(path); err == nil {
 		fmt.Printf("File %s, exists. \n", path)
-		UpdateExistingMonth(month, user, path)
+		month = UpdateExistingMonth(month, user, path)
 	} else {
-		//TODO improve code, too many lines
-		var mymap = make(map[string][]Spend)
-		var spend = make([]Spend, 1)
-		spend[0].Description = "Please provide a description (optional)"
-		month.Expenses = mymap
-		month.Bills = user.Bills
-		month.User = user.Admin
-		for _, bills := range user.Places {
-			mymap[bills] = spend
-		}
-		month.Expenses = mymap
+		month = CreateMonth(user, month)
 		MarshallMonth(month, path)
 	}
-
+	GenerateStatsPerMonth(month)
 }

@@ -11,8 +11,8 @@ const (
 
 // Bill type with fields
 type Bill struct {
-	Company     string `yaml:"name"`
-	Type        string `yaml:"type"`
-	Amount      int    `yaml:"amount"`
-	Description string `yaml:"description"`
+	Company     string  `yaml:"name"`
+	Type        string  `yaml:"type"`
+	Amount      float32 `yaml:"amount"`
+	Description string  `yaml:"description"`
 }

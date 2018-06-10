@@ -20,7 +20,7 @@ func generateFrequentPlaces(frequentPlace string) map[string][]Spend {
 	return place
 }
 
-func generateBills(billCompany string, billAmount int) []Bill {
+func generateBills(billCompany string, billAmount float32) []Bill {
 	var bills []Bill
 	var bill Bill
 	bill.Company = billCompany
@@ -31,7 +31,7 @@ func generateBills(billCompany string, billAmount int) []Bill {
 	return bills
 }
 
-func generateBorrowers(loan int, iteration string, person string) []Borrower {
+func generateBorrowers(loan float32, iteration string, person string) []Borrower {
 	var borrowers []Borrower
 	var borrower Borrower
 	borrower.Loan = loan
@@ -41,7 +41,7 @@ func generateBorrowers(loan int, iteration string, person string) []Borrower {
 	return borrowers
 }
 
-func generateMonthForTest(userName string, billCompany string, billAmount int, userFrequentPlace string) Month {
+func generateMonthForTest(userName string, billCompany string, billAmount float32, userFrequentPlace string) Month {
 	var month Month
 	month.User = userName
 	month.Bills = generateBills(billCompany, billAmount)
@@ -49,7 +49,7 @@ func generateMonthForTest(userName string, billCompany string, billAmount int, u
 	return month
 }
 
-func generateLedgerForTest(userName string, userSalary int, borrowerLoan int, borrowerIteration string, borrowerPerson string, billCompany string, billAmount int, userFrequentPlace string) Ledger {
+func generateLedgerForTest(userName string, userSalary int, borrowerLoan float32, borrowerIteration string, borrowerPerson string, billCompany string, billAmount float32, userFrequentPlace string) Ledger {
 	var ledger Ledger
 	ledger.Admin = userName
 	ledger.Salary = userSalary
