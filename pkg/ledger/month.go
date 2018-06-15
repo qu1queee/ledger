@@ -83,7 +83,7 @@ func InitializeCurrentMonth(user Ledger) {
 	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + currentMonthLowerCase + "/" + currentMonthLowerCase + ".yml"
 
 	if _, err := os.Stat(path); err == nil {
-		fmt.Printf("File %s, exists. \n", path)
+		fmt.Printf("%s %s %s\n", prettyBlueBold("File"), prettyGreen(path), prettyBlueBold("exists."))
 		month = UpdateExistingMonth(month, user, path)
 	} else {
 		month = CreateMonth(user, month)
