@@ -16,14 +16,21 @@ func Execute() {
 			Name:  "config, c",
 			Usage: "Load configuration from yaml `FILE`",
 		},
+		cli.StringFlag{
+			Name:  "user, u",
+			Usage: "Specify user to use `USER`",
+		},
 	}
 
 	app.Name = "ledger"
 	app.Usage = "Control your finanzas!"
 	app.Action = func(c *cli.Context) error {
-		if c.String("config") != "" {
-			path := c.String("config")
-			ledger.GetInitialConf(path)
+		var path string
+		var desiredUser string
+		if c.String("user") != "" || c.String("config") != "" {
+			desiredUser = c.String("user")
+			path = c.String("config")
+			ledger.GetInitialConf(path, desiredUser)
 		}
 		return nil
 	}
