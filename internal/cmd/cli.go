@@ -20,6 +20,14 @@ func Execute() {
 			Name:  "user, u",
 			Usage: "Specify user to use `USER`",
 		},
+		cli.StringFlag{
+			Name:  "month, m",
+			Usage: "Specify a month to collect(default: current)",
+		},
+		cli.StringFlag{
+			Name:  "list, l",
+			Usage: "List all collected months",
+		},
 	}
 
 	app.Name = "ledger"
@@ -27,10 +35,12 @@ func Execute() {
 	app.Action = func(c *cli.Context) error {
 		var path string
 		var desiredUser string
+		var desiredMonth string
 		if c.String("user") != "" || c.String("config") != "" {
 			desiredUser = c.String("user")
 			path = c.String("config")
-			ledger.GetInitialConf(path, desiredUser)
+			desiredMonth = c.String("month")
+			ledger.GetInitialConf(path, desiredUser, desiredMonth)
 		}
 		return nil
 	}

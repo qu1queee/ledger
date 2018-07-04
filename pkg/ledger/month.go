@@ -75,11 +75,16 @@ func CreateMonth(user Ledger, month Month) Month {
 }
 
 // InitializeCurrentMonth will init the YAML file for the current month, based on the main config YAML
-func InitializeCurrentMonth(user Ledger) {
+func InitializeCurrentMonth(user Ledger, desiredMonth string) {
 	var month Month
+	var currentMonthLowerCase string
 	var currentMonth time.Month
 	_, currentMonth, _ = time.Now().UTC().Date()
-	currentMonthLowerCase := strings.ToLower(currentMonth.String())
+	if desiredMonth != "" {
+		currentMonthLowerCase = strings.ToLower(desiredMonth)
+	} else {
+		currentMonthLowerCase = strings.ToLower(currentMonth.String())
+	}
 	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + currentMonthLowerCase + "/" + currentMonthLowerCase + ".yml"
 
 	if _, err := os.Stat(path); err == nil {

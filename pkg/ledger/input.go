@@ -81,13 +81,17 @@ func readConfigFile(configPath string) Ledger {
 }
 
 // GetInitialConf will process the main config YAML
-func GetInitialConf(path string, user string) {
+func GetInitialConf(path string, user string, desiredMonth string) {
 	var ledger Ledger
 	var configFilePath = HOME + ledgerConfigDirName + "/" + configFilePath
 	configExist, configPath := IfConfigFileExist(configFilePath)
 	if configExist && path == "" {
 		fmt.Printf("Going to use %v from ~/.ledger\n", prettyRedBold("config.yaml"))
 		ledger = readConfigFile(configPath)
+		if ledger.Admin != user {
+			fmt.Printf("User %v, does not exists\n", prettyRedBold(user))
+			os.Exit(127)
+		}
 	} else if path != "" {
 		fmt.Printf("Going to use %v \n", prettyRedBold(path))
 		ledger = readConfigFile(path)
@@ -98,7 +102,7 @@ func GetInitialConf(path string, user string) {
 		fmt.Println("No config.yaml found, use --config to provide it")
 		os.Exit(127)
 	}
-	InitializeCurrentMonth(ledger)
+	InitializeCurrentMonth(ledger, desiredMonth)
 }
 
 func check(e error) {
