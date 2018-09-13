@@ -40,8 +40,8 @@ func InitializeLedgerCurrentMonthDir() {
 
 // InitializeLedgerRootDir generate new .ledger dir under HOME path
 func InitializeLedgerRootDir() {
-	if _, err := os.Stat(os.Getenv("HOME") + ledgerConfigDirName); os.IsNotExist(err) {
-		err = os.MkdirAll(os.Getenv("HOME")+ledgerConfigDirName, 0755)
+	if _, err := os.Stat(os.Getenv("HOME") + "/" + LedgerDir); os.IsNotExist(err) {
+		err = os.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0755)
 		if err != nil {
 			panic(err)
 		}
@@ -89,11 +89,8 @@ func GetInitialConf(path string, user string, desiredMonth string) Ledger {
 	return ledger
 }
 
-// SetupConfig will setup the financial file
-// for the current month
-func SetupConfig(ledger Ledger, path string) {
-	InitializeConfigFile(ledger, path)
-	// InitializeLedgerRootDir()
+// SetupUserFile ss
+func SetupUserFile() {
 	// InitializeLedgerCurrentMonthDir()
 	// InitializeCurrentMonth(ledger, desiredMonth)
 }

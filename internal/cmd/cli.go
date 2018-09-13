@@ -40,8 +40,9 @@ func Execute() {
 			desiredUser = c.String("user")
 			path = c.String("config")
 			desiredMonth = c.String("month")
+			ledger.InitializeLedgerRootDir()
 			ledgerStruct := ledger.GetInitialConf(path, desiredUser, desiredMonth)
-			ledger.SetupConfig(ledgerStruct, path)
+			ledger.InitializeConfigFile(ledgerStruct, path)
 		}
 		return nil
 	}
