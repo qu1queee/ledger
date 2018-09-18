@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -70,5 +72,38 @@ func TestConfigFile(t *testing.T) {
 			So(ledger.Admin, ShouldHaveSameTypeAs, "idleuser")
 		})
 	})
+}
 
+// TestMonthConfig will verify proper creation of
+// the month dir under .ledger
+func TestMonthConfig(t *testing.T) {
+	var ledger Ledger
+	dir, _ := os.Getwd()
+	os.Setenv("HOME", dir+"/../../test-assets/")
+	ledger = GetInitialConf("../../test-assets/config/config-test.yml", "admin", "")
+	InitializeConfigFile(ledger, "../../test-assets/config/config-test.yml")
+	_, month, _ := time.Now().Date()
+
+	Convey("When dealing with month records", t, func() {
+
+		Convey("When no month is provided and no month dir exists, create the month config", func() {
+			InitializeLedgerCurrentMonthDir()
+			flag := IfDirFileExists(dir + "/../../test-assets/.ledger/" + strings.ToLower(month.String()))
+			So(flag, ShouldBeTrue)
+		})
+
+		Convey("When no month is provided and the month dir exists, get the current month", func() {
+			os.Setenv("HOME", dir+"/../../test-assets/fake-home")
+			InitializeLedgerCurrentMonthDir()
+			flag := IfDirFileExists(dir + "/../../test-assets/fake-home/.ledger/april")
+			So(flag, ShouldBeTrue)
+		})
+	})
+}
+
+func IfDirFileExists(configDirPath string) bool {
+	if _, err := os.Stat(configDirPath); err == nil {
+		return true
+	}
+	return false
 }
