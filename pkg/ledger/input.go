@@ -89,12 +89,6 @@ func GetInitialConf(path string, user string, desiredMonth string) Ledger {
 	return ledger
 }
 
-// SetupUserFile ss
-func SetupUserFile() {
-	// InitializeLedgerCurrentMonthDir()
-	// InitializeCurrentMonth(ledger, desiredMonth)
-}
-
 func check(e error) {
 	if e != nil {
 		panic(e)

@@ -1,74 +1,45 @@
 package ledger
 
-func generateFrequentPlaces(frequentPlace string) map[string][]Spend {
-	var spend []Spend
-	var place map[string][]Spend
-	for _, test := range spend {
-		test.Amount = 2
-		test.Date = "May"
-		test.Description = "Nothing"
-	}
+import (
+	"os"
+	"strings"
+	"testing"
+	"time"
 
-	place = make(map[string][]Spend)
-	place[frequentPlace] = spend
+	. "github.com/smartystreets/goconvey/convey"
+)
 
-	return place
-}
-
-func generateBills(billCompany string, billAmount float32) []Bill {
-	var bills []Bill
-	var bill Bill
-	bill.Company = billCompany
-	bill.Type = "monthly"
-	bill.Amount = billAmount
-	bill.Description = "nothing"
-	bills = append(bills, bill)
-	return bills
-}
-
-func generateBorrowers(loan float32, iteration string, person string) []Borrower {
-	var borrowers []Borrower
-	var borrower Borrower
-	borrower.Loan = loan
-	borrower.Type = iteration
-	borrower.Person = person
-	borrowers = append(borrowers, borrower)
-	return borrowers
-}
-
-func generateMonthForTest(userName string, billCompany string, billAmount float32, userFrequentPlace string) Month {
-	var month Month
-	month.User = userName
-	month.Bills = generateBills(billCompany, billAmount)
-	month.Expenses = generateFrequentPlaces(userFrequentPlace)
-	return month
-}
-
-func generateLedgerForTest(userName string, userSalary int, borrowerLoan float32, borrowerIteration string, borrowerPerson string, billCompany string, billAmount float32, userFrequentPlace string) Ledger {
+// TODO finish method comments
+// TestMonthFileConfig
+func TestMonthFileConfig(t *testing.T) {
 	var ledger Ledger
-	ledger.Admin = userName
-	ledger.Salary = userSalary
-	ledger.Clients = generateBorrowers(borrowerLoan, borrowerIteration, borrowerPerson)
-	ledger.Bills = generateBills(billCompany, billAmount)
-	ledger.Places = []string{userFrequentPlace}
-	return ledger
+	dir, _ := os.Getwd()
+	os.Setenv("HOME", dir+"/../../test-assets/fake-home/")
+	ledger = GetInitialConf("../../test-assets/config/config-test.yml", "admin", "")
+	InitializeConfigFile(ledger, "../../test-assets/config/config-test.yml")
+	_, month, _ := time.Now().Date()
+
+	Convey("When dealing with month files, and no month is provided", t, func() {
+
+		Convey("When file month does not exists, create it", func() {
+			InitializeLedgerCurrentMonthDir()
+			InitializeCurrentMonth(ledger, strings.ToLower(month.String()))
+			flag := IfFileExists(dir + "/../../test-assets/fake-home/.ledger/" + strings.ToLower(month.String()) + "/" + strings.ToLower(month.String()) + ".yml")
+			So(flag, ShouldBeTrue)
+		})
+
+		// TODO: add stdout match here
+		// Convey("When file month exists, do nothing", func() {
+		// 	InitializeCurrentMonth(ledger, "april")
+		// 	flag := IfFileExists(dir + "/../../test-assets/fake-home/.ledger/" + "april/april.yml")
+		// 	So(flag, ShouldBeTrue)
+		// })
+	})
 }
 
-// TODO fix this test case
-// // Test function takes always a single argument t *testing.T
-// func TestInitializeCurrentMonth(t *testing.T) {
-// 	var tests = []struct {
-// 		ledger Ledger
-// 		want   Month
-// 	}{
-// 		{generateLedgerForTest("user_X", 100, 20, "monthly", "friend_Y", "Netflix", 10, "taco_bell"), generateMonthForTest("user_X", "Netflix", 10, "taco_bell")},
-// 	}
-// 	for _, test := range tests {
-// 		if test.ledger.Admin != test.want.User {
-// 			t.Errorf("Expected user %v, got %v", test.ledger.Admin, test.want.User)
-// 		} else if !reflect.DeepEqual(test.ledger.Bills, test.want.Bills) {
-// 			t.Errorf("Expected bill %v, got %v", test.ledger.Bills, test.want.Bills)
-// 		}
-// 	}
-// 	t.Errorf("Me estas jodiendo.")
-// }
+func IfFileExists(configDirPath string) bool {
+	if _, err := os.Stat(configDirPath); err == nil {
+		return true
+	}
+	return false
+}

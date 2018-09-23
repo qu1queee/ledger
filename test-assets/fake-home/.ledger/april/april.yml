@@ -1,0 +1,19 @@
+user: admin
+bills:
+- name: a_company
+  type: monthly
+  amount: 100
+  description: some description
+frequent_places:
+  shop_a:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)
+  shop_b:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)
+  shop_c:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)

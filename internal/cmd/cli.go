@@ -3,6 +3,8 @@ package cmd
 import (
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/qu1queee/ledger/pkg/ledger"
 	"github.com/urfave/cli"
@@ -33,16 +35,18 @@ func Execute() {
 	app.Name = "ledger"
 	app.Usage = "Control your finanzas!"
 	app.Action = func(c *cli.Context) error {
-		var path string
-		var desiredUser string
-		var desiredMonth string
 		if c.String("user") != "" || c.String("config") != "" {
-			desiredUser = c.String("user")
-			path = c.String("config")
-			desiredMonth = c.String("month")
+			desiredUser := c.String("user")
+			path := c.String("config")
+			desiredMonth := c.String("month")
 			ledger.InitializeLedgerRootDir()
 			ledgerStruct := ledger.GetInitialConf(path, desiredUser, desiredMonth)
 			ledger.InitializeConfigFile(ledgerStruct, path)
+			ledger.InitializeLedgerCurrentMonthDir()
+			if desiredMonth == "" {
+				desiredMonth = strings.ToLower(time.Now().Month().String())
+			}
+			ledger.InitializeCurrentMonth(ledgerStruct, desiredMonth)
 		}
 		return nil
 	}

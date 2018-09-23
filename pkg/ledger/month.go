@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
-	"time"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -27,6 +25,7 @@ type Month struct {
 	Expenses map[string][]Spend `yaml:"frequent_places"`
 }
 
+// TODO logic needs to be reworked
 // MarshallMonth func to generate the current month config YAML file
 func MarshallMonth(month Month, path string) {
 	b, err := yaml.Marshal(month)
@@ -37,6 +36,7 @@ func MarshallMonth(month Month, path string) {
 	}
 }
 
+// TODO logic needs to be reworked
 //UpdateExistingMonth will update month config file
 func UpdateExistingMonth(month Month, user Ledger, path string) Month {
 	yamlMonthFile, err := ioutil.ReadFile(path)
@@ -59,6 +59,7 @@ func UpdateExistingMonth(month Month, user Ledger, path string) Month {
 	return month
 }
 
+// TODO logic needs to be reworked
 // CreateMonth create Month file with configuration file properties
 func CreateMonth(user Ledger, month Month) Month {
 	var mymap = make(map[string][]Spend)
@@ -76,23 +77,14 @@ func CreateMonth(user Ledger, month Month) Month {
 
 // InitializeCurrentMonth will init the YAML file for the current month, based on the main config YAML
 func InitializeCurrentMonth(user Ledger, desiredMonth string) {
+	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + desiredMonth + "/" + desiredMonth + ".yml"
 	var month Month
-	var currentMonthLowerCase string
-	var currentMonth time.Month
-	_, currentMonth, _ = time.Now().UTC().Date()
-	if desiredMonth != "" {
-		currentMonthLowerCase = strings.ToLower(desiredMonth)
-	} else {
-		currentMonthLowerCase = strings.ToLower(currentMonth.String())
-	}
-	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + currentMonthLowerCase + "/" + currentMonthLowerCase + ".yml"
-
 	if _, err := os.Stat(path); err == nil {
-		fmt.Printf("%s %s %s\n", prettyBlueBold("File"), prettyGreen(path), prettyBlueBold("exists."))
-		month = UpdateExistingMonth(month, user, path)
+		UpdateExistingMonth(month, user, path)
 	} else {
 		month = CreateMonth(user, month)
 		MarshallMonth(month, path)
 	}
-	GenerateStatsPerMonth(month)
+	// TODO: this should be output JSON as default
+	// GenerateStatsPerMonth(month)
 }
