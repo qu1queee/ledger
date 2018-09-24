@@ -1,7 +1,6 @@
 package ledger
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -38,7 +37,8 @@ func MarshallMonth(month Month, path string) {
 
 // TODO logic needs to be reworked
 //UpdateExistingMonth will update month config file
-func UpdateExistingMonth(month Month, user Ledger, path string) Month {
+func UpdateExistingMonth(user Ledger, path string) Month {
+	var month Month
 	yamlMonthFile, err := ioutil.ReadFile(path)
 	check(err)
 	err = yaml.Unmarshal(yamlMonthFile, &month)
@@ -47,7 +47,6 @@ func UpdateExistingMonth(month Month, user Ledger, path string) Month {
 	}
 	for _, frequentPlaces := range user.Places {
 		if month.Expenses[frequentPlaces] == nil {
-			fmt.Printf("New frequent place detected: %v, updating. \n", frequentPlaces)
 			var missingExpense Spend
 			month.Expenses[frequentPlaces] = append(month.Expenses[frequentPlaces], missingExpense)
 		}
@@ -59,9 +58,10 @@ func UpdateExistingMonth(month Month, user Ledger, path string) Month {
 	return month
 }
 
-// TODO logic needs to be reworked
 // CreateMonth create Month file with configuration file properties
-func CreateMonth(user Ledger, month Month) Month {
+// TODO logic needs to be reworked
+func CreateMonth(user Ledger) Month {
+	var month Month
 	var mymap = make(map[string][]Spend)
 	var spend = make([]Spend, 1)
 	spend[0].Description = "Please provide a description (optional)"
@@ -75,16 +75,22 @@ func CreateMonth(user Ledger, month Month) Month {
 	return month
 }
 
-// InitializeCurrentMonth will init the YAML file for the current month, based on the main config YAML
-func InitializeCurrentMonth(user Ledger, desiredMonth string) {
-	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + desiredMonth + "/" + desiredMonth + ".yml"
+//InitializeMonth ... will init the YAML file for the current month, based on the main config YAML
+func InitializeMonth(user Ledger, desiredMonth string) (Month, string) {
 	var month Month
-	if _, err := os.Stat(path); err == nil {
-		UpdateExistingMonth(month, user, path)
+	path := os.Getenv("HOME") + ledgerConfigDirName + "/" + desiredMonth + "/" + desiredMonth + ".yml"
+	if IfFileExists(path) {
+		month = UpdateExistingMonth(user, path)
 	} else {
-		month = CreateMonth(user, month)
-		MarshallMonth(month, path)
+		month = CreateMonth(user)
 	}
-	// TODO: this should be output JSON as default
-	// GenerateStatsPerMonth(month)
+	return month, path
+}
+
+//IfFileExists ... checks file existance
+func IfFileExists(configDirPath string) bool {
+	if _, err := os.Stat(configDirPath); err == nil {
+		return true
+	}
+	return false
 }

@@ -46,7 +46,8 @@ func Execute() {
 			if desiredMonth == "" {
 				desiredMonth = strings.ToLower(time.Now().Month().String())
 			}
-			ledger.InitializeCurrentMonth(ledgerStruct, desiredMonth)
+			monthStruct, monthFile := ledger.InitializeMonth(ledgerStruct, desiredMonth)
+			ledger.MarshallMonth(monthStruct, monthFile)
 		}
 		return nil
 	}
