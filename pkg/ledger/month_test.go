@@ -1,77 +1,91 @@
 package ledger
 
 import (
-	"reflect"
+	"os"
+	"strings"
 	"testing"
+	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/spf13/afero"
 )
 
-func generateFrequentPlaces(frequentPlace string) map[string][]Spend {
-	var spend []Spend
-	var place map[string][]Spend
-	for _, test := range spend {
-		test.Amount = 2
-		test.Date = "May"
-		test.Description = "Nothing"
-	}
-
-	place = make(map[string][]Spend)
-	place[frequentPlace] = spend
-
-	return place
-}
-
-func generateBills(billCompany string, billAmount float32) []Bill {
-	var bills []Bill
-	var bill Bill
-	bill.Company = billCompany
-	bill.Type = "monthly"
-	bill.Amount = billAmount
-	bill.Description = "nothing"
-	bills = append(bills, bill)
-	return bills
-}
-
-func generateBorrowers(loan float32, iteration string, person string) []Borrower {
-	var borrowers []Borrower
-	var borrower Borrower
-	borrower.Loan = loan
-	borrower.Type = iteration
-	borrower.Person = person
-	borrowers = append(borrowers, borrower)
-	return borrowers
-}
-
-func generateMonthForTest(userName string, billCompany string, billAmount float32, userFrequentPlace string) Month {
-	var month Month
-	month.User = userName
-	month.Bills = generateBills(billCompany, billAmount)
-	month.Expenses = generateFrequentPlaces(userFrequentPlace)
-	return month
-}
-
-func generateLedgerForTest(userName string, userSalary int, borrowerLoan float32, borrowerIteration string, borrowerPerson string, billCompany string, billAmount float32, userFrequentPlace string) Ledger {
+// TODO finish method comments
+// TestMonthFileConfig
+func TestMonthFilePresence(t *testing.T) {
 	var ledger Ledger
-	ledger.Admin = userName
-	ledger.Salary = userSalary
-	ledger.Clients = generateBorrowers(borrowerLoan, borrowerIteration, borrowerPerson)
-	ledger.Bills = generateBills(billCompany, billAmount)
-	ledger.Places = []string{userFrequentPlace}
-	return ledger
+	dir, _ := os.Getwd()
+	os.Setenv("HOME", dir+"/../../test-assets/fake-home")
+
+	Convey("When dealing with month files", t, func() {
+		//Use afero wrapper around the native OS calls
+		appfs := afero.NewOsFs()
+		Convey("When file month does not exists and no month is provided, create it", func() {
+			ledger = GetInitialConf("../../test-assets/config/config-test.yml", "admin", "")
+			currentMonth := strings.ToLower(time.Now().Month().String())
+			InitializeConfigFile(ledger, "../../test-assets/config/config-test.yml")
+			InitializeLedgerCurrentMonthDir()
+			monthStruct, monthFile := InitializeMonth(ledger, currentMonth)
+			MarshallMonth(monthStruct, monthFile)
+			So(monthStruct.User, ShouldEqual, "admin")
+			err := appfs.RemoveAll(dir + "/../../test-assets/fake-home/.ledger/october")
+			if err != nil {
+				check(err)
+			}
+			So(len(monthStruct.Expenses), ShouldEqual, 3)
+
+		})
+
+		Convey("When file month does not exists and month is provided, create it", func() {
+			ledger := GetInitialConf("../../test-assets/config/config-test-april.yml", "admin", "april")
+			InitializeConfigFile(ledger, "../../test-assets/config/config-test-april.yml")
+			InitializeLedgerCurrentMonthDir()
+			monthStruct, monthFile := InitializeMonth(ledger, "april")
+			MarshallMonth(monthStruct, monthFile)
+			So(monthStruct.User, ShouldEqual, "adminofapril")
+			err := appfs.Remove(dir + "/../../test-assets/fake-home/.ledger/april/april.yml")
+			if err != nil {
+				check(err)
+			}
+			So(len(monthStruct.Expenses), ShouldEqual, 3)
+		})
+
+	})
+
 }
 
-func TestInitializeCurrentMonth(t *testing.T) {
-	var tests = []struct {
-		ledger Ledger
-		want   Month
-	}{
-		{generateLedgerForTest("user_X", 100, 20, "monthly", "friend_Y", "Netflix", 10, "taco_bell"), generateMonthForTest("user_X", "Netflix", 10, "taco_bell")},
-	}
-	for _, test := range tests {
-		if test.ledger.Admin != test.want.User {
-			t.Errorf("Expected user %v, got %v", test.ledger.Admin, test.want.User)
-		} else if !reflect.DeepEqual(test.ledger.Bills, test.want.Bills) {
-			t.Errorf("Expected bill %v, got %v", test.ledger.Bills, test.want.Bills)
-		}
+func TestMonthFileContents(t *testing.T) {
+	var ledger Ledger
+	dir, _ := os.Getwd()
+	os.Setenv("HOME", dir+"/../../test-assets/fake-home/")
 
-	}
+	//Use afero wrapper around the native OS calls
+	appfs := afero.NewOsFs()
+
+	Convey("For existing month file", t, func() {
+		ledger = GetInitialConf("../../test-assets/config/config-another-test.yml", "admin", "may")
+		InitializeConfigFile(ledger, "../../test-assets/config/config-another-test.yml")
+		InitializeLedgerCurrentMonthDir()
+
+		Convey("When config file is not changed", func() {
+			monthStruct, monthFile := InitializeMonth(ledger, "may")
+			MarshallMonth(monthStruct, monthFile)
+			So(monthStruct.User, ShouldEqual, "owner")
+			So(len(monthStruct.Expenses), ShouldEqual, 3)
+		})
+
+		Convey("When config file is updated", func() {
+			ledger = GetInitialConf("../../test-assets/config/config-another-test-updated.yml", "admin", "may")
+			monthStruct, _ := InitializeMonth(ledger, "may")
+			So(len(monthStruct.Expenses), ShouldEqual, 5)
+		})
+		errFile := appfs.Remove(dir + "/../../test-assets/fake-home/.ledger/config.yaml")
+		if errFile != nil {
+			check(errFile)
+		}
+		errDir := appfs.RemoveAll(dir + "/../../test-assets/fake-home/.ledger/october")
+		if errDir != nil {
+			check(errDir)
+		}
+	})
 }

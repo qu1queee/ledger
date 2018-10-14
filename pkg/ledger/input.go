@@ -8,13 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
 
 const configFilePath = "config.yaml"
 
-// HOME defines home path of the environment
-var HOME = os.Getenv("HOME")
+// LedgerDir sets root ledger repo dir
+const LedgerDir = ".ledger"
 
 // Ledger struct that defines how the main config file should look
 type Ledger struct {
@@ -28,10 +29,12 @@ type Ledger struct {
 // InitializeLedgerCurrentMonthDir generate new .ledger/month dir under HOME path
 func InitializeLedgerCurrentMonthDir() {
 	var currentTime time.Month
+	appfs := afero.NewOsFs()
 	_, currentTime, _ = time.Now().UTC().Date()
 	currentTimeLowerCase := strings.ToLower(currentTime.String())
-	if _, err := os.Stat(HOME + ledgerConfigDirName + "/" + currentTimeLowerCase); os.IsNotExist(err) {
-		err = os.MkdirAll(HOME+ledgerConfigDirName+"/"+currentTimeLowerCase, 0755)
+
+	if _, err := os.Stat(os.Getenv("HOME") + ledgerConfigDirName + "/" + currentTimeLowerCase); os.IsNotExist(err) {
+		err = appfs.MkdirAll(os.Getenv("HOME")+ledgerConfigDirName+"/"+currentTimeLowerCase, 0755)
 		if err != nil {
 			panic(err)
 		}
@@ -40,69 +43,57 @@ func InitializeLedgerCurrentMonthDir() {
 
 // InitializeLedgerRootDir generate new .ledger dir under HOME path
 func InitializeLedgerRootDir() {
-	if _, err := os.Stat(HOME + ledgerConfigDirName); os.IsNotExist(err) {
-		err = os.MkdirAll(HOME+ledgerConfigDirName, 0755)
+	appfs := afero.NewOsFs()
+	if _, err := os.Stat(os.Getenv("HOME") + "/" + LedgerDir); os.IsNotExist(err) {
+		err = appfs.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0755)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-// IfConfigFileExist checks that a config.yaml exists under Ledger HOME path
-func IfConfigFileExist(configFilePath string) (bool, string) {
+// IfConfigFileExist checks that a config.yaml exists under the root DIR ~/.ledger
+func IfConfigFileExist(configFilePath string) bool {
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-		return false, configFilePath
+		return false
 	}
-	return true, configFilePath
+	return true
 }
 
 // InitializeConfigFile creates a config.yaml if not exists
 func InitializeConfigFile(user Ledger, configFile string) {
+	appfs := afero.NewOsFs()
 	b, err := yaml.Marshal(user)
 	check(err)
-	configExist, configPath := IfConfigFileExist(configFile)
-	if !configExist {
-		fmt.Printf("Adding %v into ~/.ledger\n", prettyRedBold("config.yaml"))
-		errs := ioutil.WriteFile(configPath, b, 0644)
+	if !IfConfigFileExist(os.Getenv("HOME") + "/" + LedgerDir) {
+		err = appfs.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0700)
+		check(err)
+	}
+	if !IfConfigFileExist(os.Getenv("HOME") + "/" + LedgerDir + "/" + configFilePath) {
+		errs := afero.WriteFile(appfs, os.Getenv("HOME")+"/"+LedgerDir+"/"+configFilePath, b, 0644)
 		check(errs)
 	}
 }
 
-// readConfigFile will unmarshall the config.yaml
-func readConfigFile(configPath string) Ledger {
+// GetInitialConf will process the main config YAML and generated a copy
+// under the ledger ROOT dir
+func GetInitialConf(path string, user string, desiredMonth string) Ledger {
+	if len(path) == 0 {
+		path = os.Getenv("HOME") + "/" + LedgerDir + "/" + configFilePath
+	}
+	configExist := IfConfigFileExist(path)
+	if !configExist {
+		fmt.Println("No config.yaml found, use --config to provide it")
+		os.Exit(1)
+	}
 	var ledger Ledger
-	yamlFile, err := ioutil.ReadFile(configPath)
+	yamlFile, err := ioutil.ReadFile(path)
 	check(err)
 	err = yaml.Unmarshal(yamlFile, &ledger)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 	return ledger
-}
-
-// GetInitialConf will process the main config YAML
-func GetInitialConf(path string, user string, desiredMonth string) {
-	var ledger Ledger
-	var configFilePath = HOME + ledgerConfigDirName + "/" + configFilePath
-	configExist, configPath := IfConfigFileExist(configFilePath)
-	if configExist && path == "" {
-		fmt.Printf("Going to use %v from ~/.ledger\n", prettyRedBold("config.yaml"))
-		ledger = readConfigFile(configPath)
-		if ledger.Admin != user {
-			fmt.Printf("User %v, does not exists\n", prettyRedBold(user))
-			os.Exit(127)
-		}
-	} else if path != "" {
-		fmt.Printf("Going to use %v \n", prettyRedBold(path))
-		ledger = readConfigFile(path)
-		InitializeConfigFile(ledger, configFilePath)
-		InitializeLedgerRootDir()
-		InitializeLedgerCurrentMonthDir()
-	} else {
-		fmt.Println("No config.yaml found, use --config to provide it")
-		os.Exit(127)
-	}
-	InitializeCurrentMonth(ledger, desiredMonth)
 }
 
 func check(e error) {
