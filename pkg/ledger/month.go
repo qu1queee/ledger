@@ -51,10 +51,10 @@ func UpdateExistingMonth(user Ledger, path string) Month {
 			month.Expenses[frequentPlaces] = append(month.Expenses[frequentPlaces], missingExpense)
 		}
 	}
-	b, err := yaml.Marshal(month)
-	check(err)
-	errs := ioutil.WriteFile(path, b, 0644)
-	check(errs)
+	// b, err := yaml.Marshal(month)
+	// check(err)
+	// errs := ioutil.WriteFile(path, b, 0644)
+	// check(errs)
 	return month
 }
 

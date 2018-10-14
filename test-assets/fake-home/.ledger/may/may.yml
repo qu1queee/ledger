@@ -1,0 +1,19 @@
+user: owner
+bills:
+- name: light
+  type: monthly
+  amount: 50
+  description: ""
+frequent_places:
+  place_a:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)
+  place_c:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)
+  place_e:
+  - amount: 0
+    date: ""
+    description: Please provide a description (optional)
