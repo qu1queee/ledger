@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -28,10 +29,12 @@ type Ledger struct {
 // InitializeLedgerCurrentMonthDir generate new .ledger/month dir under HOME path
 func InitializeLedgerCurrentMonthDir() {
 	var currentTime time.Month
+	appfs := afero.NewOsFs()
 	_, currentTime, _ = time.Now().UTC().Date()
 	currentTimeLowerCase := strings.ToLower(currentTime.String())
+
 	if _, err := os.Stat(os.Getenv("HOME") + ledgerConfigDirName + "/" + currentTimeLowerCase); os.IsNotExist(err) {
-		err = os.MkdirAll(os.Getenv("HOME")+ledgerConfigDirName+"/"+currentTimeLowerCase, 0755)
+		err = appfs.MkdirAll(os.Getenv("HOME")+ledgerConfigDirName+"/"+currentTimeLowerCase, 0755)
 		if err != nil {
 			panic(err)
 		}
@@ -40,8 +43,9 @@ func InitializeLedgerCurrentMonthDir() {
 
 // InitializeLedgerRootDir generate new .ledger dir under HOME path
 func InitializeLedgerRootDir() {
+	appfs := afero.NewOsFs()
 	if _, err := os.Stat(os.Getenv("HOME") + "/" + LedgerDir); os.IsNotExist(err) {
-		err = os.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0755)
+		err = appfs.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0755)
 		if err != nil {
 			panic(err)
 		}
@@ -58,12 +62,15 @@ func IfConfigFileExist(configFilePath string) bool {
 
 // InitializeConfigFile creates a config.yaml if not exists
 func InitializeConfigFile(user Ledger, configFile string) {
+	appfs := afero.NewOsFs()
 	b, err := yaml.Marshal(user)
 	check(err)
+	if !IfConfigFileExist(os.Getenv("HOME") + "/" + LedgerDir) {
+		err = appfs.MkdirAll(os.Getenv("HOME")+"/"+LedgerDir, 0700)
+		check(err)
+	}
 	if !IfConfigFileExist(os.Getenv("HOME") + "/" + LedgerDir + "/" + configFilePath) {
-		// TODO: Add debug mode
-		// fmt.Printf("Adding %v into ~/.ledger\n", prettyRedBold("config.yaml"))
-		errs := ioutil.WriteFile(os.Getenv("HOME")+"/"+LedgerDir+"/"+configFilePath, b, 0644)
+		errs := afero.WriteFile(appfs, os.Getenv("HOME")+"/"+LedgerDir+"/"+configFilePath, b, 0644)
 		check(errs)
 	}
 }
