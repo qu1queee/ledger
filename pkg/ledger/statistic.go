@@ -1,12 +1,22 @@
 package ledger
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 )
+
+//GetJson shows data in json format
+func GetJson(month Month) string {
+	jsonMonth, err := json.Marshal(month)
+	if err != nil {
+		check(err)
+	}
+	return string(jsonMonth)
+}
 
 //GenerateStatsPerMonth will calculate total expenses per current month for both bills and expenses
 func GenerateStatsPerMonth(month Month) {

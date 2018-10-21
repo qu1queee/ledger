@@ -29,10 +29,9 @@ type Month struct {
 func MarshallMonth(month Month, path string) {
 	b, err := yaml.Marshal(month)
 	check(err)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		errs := ioutil.WriteFile(path, b, 0644)
-		check(errs)
-	}
+	errs := ioutil.WriteFile(path, b, 0644)
+	check(errs)
+
 }
 
 // TODO logic needs to be reworked
