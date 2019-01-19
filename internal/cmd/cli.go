@@ -3,10 +3,13 @@ package cmd
 import (
 	"log"
 	"os"
-	"strings"
-	"time"
+
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/qu1queee/ledger/pkg/buyer"
 
 	"github.com/qu1queee/ledger/pkg/ledger"
+	"github.com/qu1queee/ledger/pkg/transaction"
 	"github.com/urfave/cli"
 )
 
@@ -35,20 +38,20 @@ func Execute() {
 	app.Name = "ledger"
 	app.Usage = "Control your finanzas!"
 	app.Action = func(c *cli.Context) error {
-		if c.String("user") != "" || c.String("config") != "" {
-			desiredUser := c.String("user")
-			path := c.String("config")
-			desiredMonth := c.String("month")
-			ledger.InitializeLedgerRootDir()
-			ledgerStruct := ledger.GetInitialConf(path, desiredUser, desiredMonth)
-			ledger.InitializeConfigFile(ledgerStruct, path)
-			ledger.InitializeLedgerCurrentMonthDir()
-			if desiredMonth == "" {
-				desiredMonth = strings.ToLower(time.Now().Month().String())
-			}
-			monthStruct, monthFile := ledger.InitializeMonth(ledgerStruct, desiredMonth)
-			ledger.MarshallMonth(monthStruct, monthFile)
+		// var AllTransactions []ledger.TransactionBook
+		var someone buyer.Buyer
+
+		ledgers := []*ledger.Ledger{
+			{User: "enrique", Transactions: nil},
 		}
+		bt := buyer.Tools{
+			Driver:  transaction.Construct{},
+			Remover: transaction.Construct{},
+		}
+
+		someone.ModifyLedgers(&bt, 100, "sams", ledgers)
+		someone.ModifyLedgers(&bt, 40, "edeka", ledgers)
+		spew.Dump(ledgers)
 		return nil
 	}
 
